@@ -1,0 +1,119 @@
+pipeline {
+    agent any
+    environment { 
+        GOPROXY = 'https://goproxy.cn'
+		WEBHOOK = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=7e7eac95-0521-4d18-9fef-4036c5c5593c'
+    }
+    parameters {
+        string(name: 'ENV', defaultValue: 'test', description: '程序编译使用的参数')
+        choice name: 'TARGET_HOST', choices: ['172.20.55.35'], description: '要发布的主机IP地址'
+        choice name: 'PORT', choices: ['6002'], description: '容器对外暴露的端口'
+        gitParameter branch: '', description: '默认分支main', branchFilter: '.*', defaultValue: 'origin/main', name: 'GIT_BRANCH', quickFilterEnabled: true, selectedValue: 'NONE', sortMode: 'NONE', tagFilter: '*', type: 'PT_BRANCH_TAG'
+    }
+    tools {nodejs "nodejs"}
+    
+    stages {
+        stage('Git') {
+            steps {
+				script {
+					  env.buildStartTime = sh (script: 'date +%F" "%T', returnStdout: true).trim()
+				}
+				deleteDir()
+                echo 'Building..'
+                checkout([
+                        $class: 'GitSCM', branches: [[name: "${params.GIT_BRANCH}"]],
+                        extensions: [[$class: 'CloneOption', depth: 1, noTags: false, reference: '', shallow: true]], 
+                        userRemoteConfigs: 
+                            [[credentialsId: 'a308a70b-e9d8-467b-bd72-d3980c4b56c4', url: 'git@gitlab.innovsharing.com:cy_unidoc/unidoc_nodeserve.git']]
+                        ])
+            }
+        }
+        stage('Install') {
+            steps {
+                sh "npm install -g  yarn"
+                sh "yarn install"
+            }
+        }
+        stage('Build Image') {
+            steps {
+                sh "docker build -t harbor.innovsharing.com:80/unidoc/${JOB_BASE_NAME}:${BUILD_NUMBER} ."
+                sh "docker push harbor.innovsharing.com:80/unidoc/${JOB_BASE_NAME}:${BUILD_NUMBER}"
+                sleep 5
+				script {
+					  env.buildEndTime = sh (script: 'date +%F" "%T', returnStdout: true).trim()
+				}
+            }
+        }
+        stage('Deploy') {
+            steps {
+				script {
+					  env.deployStartTime = sh (script: 'date +%F" "%T', returnStdout: true).trim()
+				}
+                sh '''
+                    ssh -p 2426 root@${TARGET_HOST}  "docker rm -f ${JOB_BASE_NAME}|| true"
+                    ssh -p 2426 root@${TARGET_HOST}  docker run -d  \
+                        -p ${PORT}:${PORT} \
+                        -v /data/upload/unidoc:/upload \
+                        --restart=always \
+                        --name=${JOB_BASE_NAME} \
+                        harbor.innovsharing.com:80/unidoc/${JOB_BASE_NAME}:${BUILD_NUMBER} \
+                        npm run serve
+                '''
+            }
+        }
+    }
+	
+	post{
+		success{
+			script {
+					  env.imageTag = sh (script: 'git rev-parse HEAD ${GIT_COMMIT}', returnStdout: true).trim()
+					  env.deployEndTime = sh (script: 'date +%F" "%T', returnStdout: true).trim()
+					  env.gitCommitMessage = sh (script: 'git log --pretty=format:“%s” -1', returnStdout: true).trim()
+				}
+			sh """
+				curl "${WEBHOOK}" \
+					-H 'Content-Type: application/json' \
+					-d '''
+					{
+						"msgtype": "markdown",
+						"markdown": {
+							"content": "# ${ENV}环境${JOB_BASE_NAME}服务部署通知\n发起人:${env.BUILD_USER} \n
+							 > # 构建信息：
+							 > 1· 构建开始时间：<font color=comment >${env.buildStartTime}</font>
+							 > 2· 构建结束时间：<font color=comment >${env.buildEndTime}</font>
+							 > 3· Git分支：<font color=comment>${params.GIT_BRANCH}</font>
+							 > 4· Git 最后一次Commit ID：<font color='comment'>${env.imageTag}</font>
+							 > 5· Git Commit 描述：<font color='comment'>${env.gitCommitMessage}</font>
+							 > # 部署信息：
+							 > 1· 部署结果：<font color=info >成功</font>
+							 > 2· 部署开始时间：<font color=comment >${env.deployStartTime}</font>
+							 > 3· 部署结束时间：<font color=comment >${env.deployEndTime}</font>
+							 > 4· Jenkins部署日志：[点击查看详情](${BUILD_URL}) "
+						}
+					}
+					'''
+			"""
+		}
+		failure{
+			script {
+					  env.imageTag = sh (script: 'git rev-parse HEAD ${GIT_COMMIT}', returnStdout: true).trim()
+					  env.deployEndTime = sh (script: 'date +%F" "%T', returnStdout: true).trim()
+					  env.gitCommitMessage = sh (script: 'git log --pretty=format:“%s” -1', returnStdout: true).trim()
+				}
+			sh """
+				curl "${WEBHOOK}" \
+					-H 'Content-Type: application/json' \
+					-d '''
+					{
+						"msgtype": "markdown",
+						"markdown": {
+							"content": "${ENV} ${JOB_BASE_NAME} 部署<font color=warning >失败</font>\n发起人:${env.BUILD_USER} \n
+							>Jenkins部署日志:[点击查看详情](${BUILD_URL}) "
+						}
+					}
+					'''
+			"""
+		}
+	}
+    
+}

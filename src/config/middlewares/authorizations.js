@@ -1,0 +1,17 @@
+// 定义需要授权登录的 中间件
+exports.requiresLogin = function (req, res, next) {
+  if (req.isAuthenticated()) return next();
+  if (req.method == 'GET') req.session.returnTo = req.originalUrl;
+  res.redirect('/login');
+};
+
+// 校验是否有权限
+exports.user = {
+  hasAuthorization(req, res, next) {
+    if (req.profile.id != req.user.id) {
+      req.flash('info', 'you are not authorized');
+      return res.redirect(`/users/${req.profile.id}`);
+    }
+    next();
+  },
+};

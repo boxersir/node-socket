@@ -1,0 +1,104 @@
+{
+  "name": "tiptap-collab-server",
+  "version": "1.3.1",
+  "description": "A socket.io server and node with collaboration module. Handles multi-documents, users cursors, and hooks for programmers.",
+  "main": "lib/collabServer.js",
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "build": "npm run lint ./src -d ./lib",
+    "coverage": "npm test && nyc report --reporter=text-lcov | coveralls",
+    "lint": "eslint ./src",
+    "lint-fix": "eslint --fix --ext .js --ext .jsx --ext .vue src/",
+    "prepublish": "npm run build",
+    "serve": "node ./node_modules/@babel/node/bin/babel-node.js ./example/server.js",
+    "test": "nyc mocha --require @babel/register --reporter spec",
+    "test:watch": "mocha --watch --require @babel/register"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/boxersir/node-socket"
+  },
+  "keywords": [
+    "npm",
+    "node",
+    "javascript",
+    "tiptap",
+    "collaboration",
+    "server"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/boxersir/node-socket/issues"
+  },
+  "homepage": "https://github.com/boxersir/node-socket#readme",
+  "author": {
+    "name": "caixin",
+    "email": "caixin185@163.com",
+    "wx": "caixin185"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.11.6",
+    "@babel/core": "^7.11.6",
+    "@babel/node": "^7.10.5",
+    "@babel/plugin-transform-runtime": "^7.11.5",
+    "@babel/preset-env": "^7.11.5",
+    "@babel/register": "^7.11.5",
+    "@babel/runtime": "^7.11.2",
+    "chai": "^4.2.0",
+    "coveralls": "^3.1.0",
+    "eslint": "^7.8.1",
+    "eslint-config-airbnb-base": "^14.2.0",
+    "eslint-plugin-import": "^2.22.0",
+    "mocha": "^8.1.3",
+    "nyc": "^15.1.0",
+    "socket.io-client": "^2.3.0",
+    "tiptap-collab-server": "file:./"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.0",
+    "body-parser": "^1.20.1",
+    "bufferhelper": "^0.2.1",
+    "co": "^4.6.0",
+    "compression": "^1.7.4",
+    "connect-flash": "^0.1.1",
+    "connect-mongo": "^4.6.0",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "csurf": "^1.11.0",
+    "dotenv": "^16.0.3",
+    "express": "^4.17.1",
+    "express-session": "^1.17.3",
+    "helmet": "^6.0.0",
+    "iconv-lite": "^0.6.3",
+    "method-override": "^3.0.0",
+    "mongoose": "^6.7.1",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "passport": "^0.6.0",
+    "passport-local": "^1.0.0",
+    "prosemirror-model": "^1.16.1",
+    "prosemirror-transform": "^1.4.2",
+    "sinon": "^9.0.3",
+    "socket.io": "^2.3.0",
+    "ultimate-pagination": "^1.0.0",
+    "v8-compile-cache": "^2.3.0",
+    "view-helpers": "^0.2.0",
+    "winston": "^3.8.2"
+  },
+  "nyc": {
+    "all": true,
+    "include": [
+      "src/**/*.js"
+    ],
+    "extension": [
+      ".js"
+    ],
+    "reporter": [
+      "lcov",
+      "html",
+      "text"
+    ]
+  }
+}
