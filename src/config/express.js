@@ -31,10 +31,10 @@ module.exports = function(app,passport){
       contentSecurityPolicy:{
         useDefaults: true,
         directives: {
-          'script-src': ["'self", 'code.jquery.com'],
+          'script-src': ["'self'"],
           'style-src': ["'self'","'unsafe-inline'",'netdna.bootstrapcdn.com'],
           'img-src':["'self'",'data:','img.shields.io'],
-          'iframe-src':["'self'",'gnbtns.com']
+          'object-src': ["'none'"],
         }
       }
     })
@@ -49,7 +49,7 @@ module.exports = function(app,passport){
   }))
 
   app.use(cors({
-    origin: ['http://localhost:3000', 'https://reboil-demo.herokuapp.com'],
+    origin: ['http://127.0.0.1:6002'],
     optionsSuccessStatus: 200,
     credentials:true
   }))

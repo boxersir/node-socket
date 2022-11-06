@@ -23,12 +23,13 @@ module.exports = function (app, passport) {
     res.status(500).render('500', { error: err.stack });
   });
   // 处理无返回特殊情况 404
-  app.use((req, res) => {
-    const payload = {
-      url: req.originalUrl,
-      error: 'Not found',
-    };
-    if (req.accepts('json')) return res.status(404).json(payload);
-    res.status(404).render('404', payload);
-  });
+  // app.use((req, res) => {
+  //   const payload = {
+  //     url: req.originalUrl,
+  //     error: 'Not found',
+  //   };
+  //   console.log('请求内容',req.accepts('json'));
+  //   if (req.accepts('json')) return res.status(404).json(payload);
+  //   res.status(404).render('404', payload);
+  // });
 };

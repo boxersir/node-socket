@@ -21,7 +21,7 @@ console.log('开启服务..');
 require('dotenv').config();
 const passport = require('passport');
 
-const port = process.env.PORT || 3006;
+const port = process.env.PORT || 6002;
 
 const mongoose = require('mongoose');
 const config = require('../src/config');
@@ -36,7 +36,7 @@ require('../src/models/user.js')
 // 路由设置
 require('../src/config/passport')(passport);
 require('../src/config/express')(app, passport);
-// require('./config/routes')(app, passport);
+require('../src/config/routes')(app, passport);
 
 // 监听端口
 function listenTip() {
@@ -53,7 +53,7 @@ function connectDb() {
     .once('open', listenTip);
     console.log(config.db,'..数据库');
   return mongoose.connect(config.db, {
-    keepAlive: 1, // 毫秒级别连接
+    keepAlive: true, // 毫秒级别连接
     useNewUrlParser: true,
     useUnifiedTopology: true,
   });

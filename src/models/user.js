@@ -68,5 +68,12 @@ UserSchema.methods = {
   }
 }
 
+UserSchema.static = {
+   //初始化
+  load: function(options,cb){
+    options.select = options.select||'name'
+    return this.findOne(options.criteria).select(options.select).exec(cb)
+  }
+}
 
 mongoose.model('User', UserSchema);

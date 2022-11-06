@@ -24,84 +24,84 @@ export default class CollabServer {
   serve() {
     // eslint-disable-next-line
     const request = require('request');
-    app.use(express.json());
-    app.use(express.urlencoded({
-      extended: true,
-    }));
-    app.all('*', (req, res, next) => {
-      res.header('Access-Control-Allow-Origin', '*');
-      res.header('Access-Control-Allow-Headers', 'X-Requested-With');
-      res.header('Access-Control-Allow-Methods', 'PUT,POST,GET,DELETE,OPTIONS');
-      res.header('X-Powered-By', ' 3.2.1');
-      res.header('Content-Type', 'application/json;charset=utf-8');
-      next();
-    });
-    app.get('/nodeUnidoc/recover', (req, res) => {
-      if (!req.headers.authorization) {
-        res.send('no-token');
-      } else {
-        res.send('ok');
-        // 分发clients 版本恢复
-        fs.promises.readFile(`/upload/${req.query.namespace}/${req.query.docid}-clients.json`, 'utf8')
-          .then((data) => JSON.parse(data))
-          .catch(() => []).then((clients) => {
-            const user = clients && Object.values(clients);
-            user.forEach((id, i) => {
-              user[i] += `-recover-${req.query.name}`;
-            });
-            console.log(user, '用户');
-            this.io.of(req.query.namespace).in(req.query.docid).emit('getClients', user);
-          });
-      }
-    });
-    app.get('/drawio/proxy', (req, res) => {
-      console.log(req.query.url, '....文档路径');
-      const spath = req.query.url;
-      let fileCon = null;
-      const dirPath = path.join(__dirname, 'file');
-      if (!fs.existsSync(dirPath)) {
-        fs.mkdirSync(dirPath);
-        console.log('文件夹创建成功');
-      } else {
-        console.log('文件夹已存在');
-      }
-      const fileArryNames = spath.split('/');
-      const fileArryLen = fileArryNames.length;
-      const fileName = fileArryNames[fileArryLen - 1];
-      const stream = fs.createWriteStream(path.join(dirPath, `${fileName}.drawio`));
-      request(spath).pipe(stream).on('close', (err) => {
-        console.log(`文件[${'fileName'}]下载完毕`);
-        fs.promises.readFile(`./src/file/${fileName}.drawio`, 'utf-8').then((data) => {
-          // res.end(data);
-          fileCon = data;
-        }).catch(() => console.log(err))
-          .then(() => {
-            res.set({
-              'Content-type': 'application/octet-stream',
-            });
-            res.send(fileCon);
-          });
-      });
-    });
-    app.get('/nodeUnidoc/saved', (req, res) => {
-      if (!req.headers.authorization) {
-        res.send('no-token');
-      } else {
-        res.send('ok');
-        // 分发clients 版本保存
-        fs.promises.readFile(`/upload/${req.query.namespace}/${req.query.docid}-clients.json`, 'utf8')
-          .then((data) => JSON.parse(data))
-          .catch(() => []).then((clients) => {
-            const newClients = {};
-            const userKey = clients && Object.keys(clients);
-            userKey.forEach((user) => {
-              newClients[user] = `${clients[user]}-saved-${req.query.name}`;
-            });
-            console.log(newClients, '用户保存');
-            fs.promises.writeFile(`/upload/${req.query.namespace}/${req.query.docid}-clients.json`, JSON.stringify(newClients), 'utf8');
-          });
-      }
-    });
+    // app.use(express.json());
+    // app.use(express.urlencoded({
+    //   extended: true,
+    // }));
+    // app.all('*', (req, res, next) => {
+    //   res.header('Access-Control-Allow-Origin', '*');
+    //   res.header('Access-Control-Allow-Headers', 'X-Requested-With');
+    //   res.header('Access-Control-Allow-Methods', 'PUT,POST,GET,DELETE,OPTIONS');
+    //   res.header('X-Powered-By', ' 3.2.1');
+    //   res.header('Content-Type', 'application/json;charset=utf-8');
+    //   next();
+    // });
+    // app.get('/nodeUnidoc/recover', (req, res) => {
+    //   if (!req.headers.authorization) {
+    //     res.send('no-token');
+    //   } else {
+    //     res.send('ok');
+    //     // 分发clients 版本恢复
+    //     fs.promises.readFile(`/upload/${req.query.namespace}/${req.query.docid}-clients.json`, 'utf8')
+    //       .then((data) => JSON.parse(data))
+    //       .catch(() => []).then((clients) => {
+    //         const user = clients && Object.values(clients);
+    //         user.forEach((id, i) => {
+    //           user[i] += `-recover-${req.query.name}`;
+    //         });
+    //         console.log(user, '用户');
+    //         this.io.of(req.query.namespace).in(req.query.docid).emit('getClients', user);
+    //       });
+    //   }
+    // });
+    // app.get('/drawio/proxy', (req, res) => {
+    //   console.log(req.query.url, '....文档路径');
+    //   const spath = req.query.url;
+    //   let fileCon = null;
+    //   const dirPath = path.join(__dirname, 'file');
+    //   if (!fs.existsSync(dirPath)) {
+    //     fs.mkdirSync(dirPath);
+    //     console.log('文件夹创建成功');
+    //   } else {
+    //     console.log('文件夹已存在');
+    //   }
+    //   const fileArryNames = spath.split('/');
+    //   const fileArryLen = fileArryNames.length;
+    //   const fileName = fileArryNames[fileArryLen - 1];
+    //   const stream = fs.createWriteStream(path.join(dirPath, `${fileName}.drawio`));
+    //   request(spath).pipe(stream).on('close', (err) => {
+    //     console.log(`文件[${'fileName'}]下载完毕`);
+    //     fs.promises.readFile(`./src/file/${fileName}.drawio`, 'utf-8').then((data) => {
+    //       // res.end(data);
+    //       fileCon = data;
+    //     }).catch(() => console.log(err))
+    //       .then(() => {
+    //         res.set({
+    //           'Content-type': 'application/octet-stream',
+    //         });
+    //         res.send(fileCon);
+    //       });
+    //   });
+    // });
+    // app.get('/nodeUnidoc/saved', (req, res) => {
+    //   if (!req.headers.authorization) {
+    //     res.send('no-token');
+    //   } else {
+    //     res.send('ok');
+    //     // 分发clients 版本保存
+    //     fs.promises.readFile(`/upload/${req.query.namespace}/${req.query.docid}-clients.json`, 'utf8')
+    //       .then((data) => JSON.parse(data))
+    //       .catch(() => []).then((clients) => {
+    //         const newClients = {};
+    //         const userKey = clients && Object.keys(clients);
+    //         userKey.forEach((user) => {
+    //           newClients[user] = `${clients[user]}-saved-${req.query.name}`;
+    //         });
+    //         console.log(newClients, '用户保存');
+    //         fs.promises.writeFile(`/upload/${req.query.namespace}/${req.query.docid}-clients.json`, JSON.stringify(newClients), 'utf8');
+    //       });
+    //   }
+    // });
     // http.listen(this.options.port || 6000);
     
     this.namespaces = this.io.of(this.options.namespaceFilter || /^\/[a-zA-Z0-9_/-]+$/);

@@ -37,6 +37,19 @@ exports.create = async(function* (req, res) {
   }
 });
 
+exports.show = function(req,res){
+  const user = req.profile
+  res.render('users/show',{
+    title: user.name,
+    user:user
+  })
+}
+
+exports.signin - function() {}
+
+/**权限 */
+exports.authCallback = login
+
 /**signup */
 exports.signup = function(req,res){
   res.render('users/signup',{
@@ -47,7 +60,7 @@ exports.signup = function(req,res){
 
 /**login */
 exports.login = function(req,res){
-  res.render('users/login',{
+  res.render('/login',{
     title:'Login'
   })
 }
@@ -55,4 +68,13 @@ exports.login = function(req,res){
 exports.logout =  function(req,res){
   req.logout()
   res.redirect('/login')
+}
+
+/**session */
+exports.session = login
+
+function login(req,res) {
+  const redirectTo = req.session.returnTo ? req.session.returnTo:'/'
+  delete req.session.returnTo
+  res.redirect(redirectTo)
 }
